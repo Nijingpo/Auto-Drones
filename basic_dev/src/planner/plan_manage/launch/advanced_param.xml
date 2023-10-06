@@ -100,7 +100,7 @@
     <param name="grid_map/cy" value="$(arg cy)"/>
     <param name="grid_map/fx" value="$(arg fx)"/>
     <param name="grid_map/fy" value="$(arg fy)"/>
-    <!-- depth filter -->
+    <!-- depth filter 深层过滤器-->
     <param name="grid_map/use_depth_filter" value="true"/>
     <param name="grid_map/depth_filter_tolerance" value="0.15"/>
     <param name="grid_map/depth_filter_maxdist"   value="5.0"/>
@@ -108,7 +108,7 @@
     <param name="grid_map/depth_filter_margin"    value="2"/>
     <param name="grid_map/k_depth_scaling_factor" value="1000.0"/>
     <param name="grid_map/skip_pixel" value="2"/>
-    <!-- local fusion -->
+    <!-- 局部融合 -->
     <param name="grid_map/p_hit"  value="0.65"/>
     <param name="grid_map/p_miss" value="0.35"/>
     <param name="grid_map/p_min"  value="0.12"/>
@@ -133,7 +133,7 @@
     <param name="manager/use_distinctive_trajs" value="$(arg use_distinctive_trajs)" type="bool"/>
     <param name="manager/drone_id" value="$(arg drone_id)"/>
 
-  <!-- trajectory optimization -->
+  <!-- 轨迹优化 -->
     <param name="optimization/lambda_smooth" value="1.0" type="double"/>
     <param name="optimization/lambda_collision" value="0.5" type="double"/>
     <param name="optimization/lambda_feasibility" value="0.1" type="double"/>
@@ -147,7 +147,7 @@
     <param name="bspline/limit_acc" value="$(arg max_acc)" type="double"/>
     <param name="bspline/limit_ratio" value="1.1" type="double"/>
 
-  <!-- objects prediction -->
+  <!-- 对象预测 -->
     <param name="prediction/obj_num" value="$(arg obj_num_set)" type="int"/>
     <param name="prediction/lambda" value="1.0" type="double"/>
     <param name="prediction/predict_rate" value="1.0" type="double"/>

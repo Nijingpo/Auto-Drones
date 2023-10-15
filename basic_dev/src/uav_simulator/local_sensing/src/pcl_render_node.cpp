@@ -101,7 +101,7 @@ inline Eigen::Vector3i coord2gridIndex(const Eigen::Vector3d & pt)
   
     return idx;
 };
-
+//odom 回调函数
 void rcvOdometryCallbck(const nav_msgs::Odometry& odom)
 {
   /*if(!has_global_map)
@@ -267,9 +267,10 @@ void render_pcl_world()
 
   pub_pcl_wolrd.publish(local_map_pcl);
 }
-
+// 这个是向planner节点发送的深度图像，小做更改替换原来的depth_image
 void render_currentpose()
 {
+  // 获取当前世时间
   double this_time = ros::Time::now().toSec();
 
   Matrix4d cam_pose = cam2world.inverse();
@@ -296,8 +297,9 @@ void render_currentpose()
   	}
   //ROS_INFO("render cost %lf ms.", (ros::Time::now().toSec() - this_time) * 1000.0f);
   //printf("max_depth %lf.\n", max);
-
+// 这里是发布深度图像的地方
   cv_bridge::CvImage out_msg;
+  
   out_msg.header.stamp = last_odom_stamp;
   out_msg.header.frame_id = "camera";
   out_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
@@ -351,12 +353,12 @@ int main(int argc, char **argv)
 
   //init cam2world transformation
   cam2world = Matrix4d::Identity();
-  //subscribe point cloud
+  //subscribe point cloud订阅点云
   global_map_sub = nh.subscribe( "global_map", 1,  rcvGlobalPointCloudCallBack);  
   local_map_sub  = nh.subscribe( "local_map",  1,  rcvLocalPointCloudCallBack);  
   odom_sub       = nh.subscribe( "odometry",   50, rcvOdometryCallbck   );  
 
-  //publisher depth image and color image
+  //publisher depth image and color image发布深度图和彩色图
   pub_depth = nh.advertise<sensor_msgs::Image>("depth",1000);
   pub_color = nh.advertise<sensor_msgs::Image>("colordepth",1000);
   pub_pose  = nh.advertise<geometry_msgs::PoseStamped>("camera_pose",1000);
@@ -367,7 +369,8 @@ int main(int argc, char **argv)
 
   local_sensing_timer = nh.createTimer(ros::Duration(sensing_duration),  renderSensedPoints);
   estimation_timer    = nh.createTimer(ros::Duration(estimate_duration), pubCameraPose);
-  //cv::namedWindow("depth_image",1);
+  cv::namedWindow("depth_image",1);
+  // 窗口显示深度图像
 
   _inv_resolution = 1.0 / _resolution;
 

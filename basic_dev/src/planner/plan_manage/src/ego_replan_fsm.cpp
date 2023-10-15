@@ -6,7 +6,6 @@ namespace ego_planner
 
   void EGOReplanFSM::init(ros::NodeHandle &nh)
   {
-    // 初始化一些成员变量
     current_wp_ = 0;
     exec_state_ = FSM_EXEC_STATE::INIT;
     have_target_ = false;
@@ -14,7 +13,6 @@ namespace ego_planner
     have_recv_pre_agent_ = false;
 
     /*  fsm param  */
-    // 从ROS参数服务器中获取一些参数值
     nh.param("fsm/flight_type", target_type_, -1);
     nh.param("fsm/thresh_replan_time", replan_thresh_, -1.0);
     nh.param("fsm/thresh_no_replan_meter", no_replan_thresh_, -1.0);
@@ -23,9 +21,9 @@ namespace ego_planner
     nh.param("fsm/emergency_time", emergency_time_, 1.0);
     nh.param("fsm/realworld_experiment", flag_realworld_experiment_, false);
     nh.param("fsm/fail_safe", enable_fail_safe_, true);
-    // 根据获取的参数值，设置一些标志变量
+
     have_trigger_ = !flag_realworld_experiment_;
-    // 从ROS参数服务器中获取路径点的数量，并根据数量循环获取每个路径点的坐标。
+
     nh.param("fsm/waypoint_num", waypoint_num_, -1);
     for (int i = 0; i < waypoint_num_; i++)
     {
@@ -42,61 +40,49 @@ namespace ego_planner
     planner_manager_->setDroneIdtoOpt();
 
     /* callback */
-     // 创建定时器，每0.01秒触发一次回调函数execFSMCallback()，状态机切换
     exec_timer_ = nh.createTimer(ros::Duration(0.01), &EGOReplanFSM::execFSMCallback, this);
-    // 创建定时器，每0.05秒触发一次回调函数checkCollisionCallback()，安全检查
     safety_timer_ = nh.createTimer(ros::Duration(0.05), &EGOReplanFSM::checkCollisionCallback, this);
-    
-    // 创建订阅器，用于接收odom_world话题的消息，并指定回调函数为odometryCallback()
+
     odom_sub_ = nh.subscribe("odom_world", 1, &EGOReplanFSM::odometryCallback, this);
-    
-    // 如果planner_manager_->pp_.drone_id >= 1，创建订阅器，用于接收其他无人机的轨迹
+
     if (planner_manager_->pp_.drone_id >= 1)
     {
       string sub_topic_name = string("/drone_") + std::to_string(planner_manager_->pp_.drone_id - 1) + string("_planning/swarm_trajs");
       swarm_trajs_sub_ = nh.subscribe(sub_topic_name.c_str(), 10, &EGOReplanFSM::swarmTrajsCallback, this, ros::TransportHints().tcpNoDelay());
     }
-     // 创建一个发布器，用于发布多段B样条轨迹消息。
     string pub_topic_name = string("/drone_") + std::to_string(planner_manager_->pp_.drone_id) + string("_planning/swarm_trajs");
     swarm_trajs_pub_ = nh.advertise<traj_utils::MultiBsplines>(pub_topic_name.c_str(), 10);
 
-    // 创建一个发布器和一个订阅器，用于在规划器和其他模块之间广播B样条轨迹。发布器发布到planning/broadcast_bspline_from_planner话题，订阅器订阅planning/broadcast_bspline_to_planner话题，并指定回调函数为BroadcastBsplineCallback()。
     broadcast_bspline_pub_ = nh.advertise<traj_utils::Bspline>("planning/broadcast_bspline_from_planner", 10);
     broadcast_bspline_sub_ = nh.subscribe("planning/broadcast_bspline_to_planner", 100, &EGOReplanFSM::BroadcastBsplineCallback, this, ros::TransportHints().tcpNoDelay());
 
-    //创建一个发布器，用于发布单段B样条轨迹消息，发布到planning/bspline话题
-    //创建一个发布器，用于发布数据显示消息，发布到planning/data_display话题
     bspline_pub_ = nh.advertise<traj_utils::Bspline>("planning/bspline", 10);
     data_disp_pub_ = nh.advertise<traj_utils::DataDisp>("planning/data_display", 100);
 
-    //接收手动目标点消息
     if (target_type_ == TARGET_TYPE::MANUAL_TARGET)
     {
       waypoint_sub_ = nh.subscribe("/move_base_simple/goal", 1, &EGOReplanFSM::waypointCallback, this);
     }
-    // 接收触发信号消息
     else if (target_type_ == TARGET_TYPE::PRESET_TARGET)
     {
       trigger_sub_ = nh.subscribe("/traj_start_trigger", 1, &EGOReplanFSM::triggerCallback, this);
 
       ROS_INFO("Wait for 1 second.");
       int count = 0;
-      //等待1秒钟
       while (ros::ok() && count++ < 1000)
       {
         ros::spinOnce();
         ros::Duration(0.001).sleep();
       }
-      
-     
+
       ROS_WARN("Waiting for trigger from [n3ctrl] from RC");
-       //等待触发信号
+
       while (ros::ok() && (!have_odom_ || !have_trigger_))
       {
         ros::spinOnce();
         ros::Duration(0.001).sleep();
       }
-      // 读取给定的路径点
+
       readGivenWps();
     }
     else

@@ -168,12 +168,13 @@ int main(int argc, char** argv) {
   nh.getParam("map/y_size", _y_size);
   nh.getParam("map/z_size", _z_size);
 
-  // subscribe point cloud
+  // 订阅点云和里程计
   global_map_sub = nh.subscribe("global_map", 1, rcvGlobalPointCloudCallBack);
   local_map_sub = nh.subscribe("local_map", 1, rcvLocalPointCloudCallBack);
   odom_sub = nh.subscribe("odometry", 50, rcvOdometryCallbck);
+  
 
-  // publisher depth image and color image
+  // 发布深度图像和彩色图像
   pub_cloud =
       nh.advertise<sensor_msgs::PointCloud2>("pcl_render_node/cloud", 10);
 

@@ -10,57 +10,45 @@ void GridMap::initMap(ros::NodeHandle &nh)
   /* get parameter */
   double x_size, y_size, z_size;
   node_.param("grid_map/resolution", mp_.resolution_, -1.0);
-  
   node_.param("grid_map/map_size_x", x_size, -1.0);
-  //地图大小(真实世界大小，不是栅格数量，单位m)
   node_.param("grid_map/map_size_y", y_size, -1.0);
   node_.param("grid_map/map_size_z", z_size, -1.0);
-   //局部更新范围
   node_.param("grid_map/local_update_range_x", mp_.local_update_range_(0), -1.0);
   node_.param("grid_map/local_update_range_y", mp_.local_update_range_(1), -1.0);
   node_.param("grid_map/local_update_range_z", mp_.local_update_range_(2), -1.0);
-   //障碍物膨胀半径
   node_.param("grid_map/obstacles_inflation", mp_.obstacles_inflation_, -1.0);
-  //相机内参
+
   node_.param("grid_map/fx", mp_.fx_, -1.0);
   node_.param("grid_map/fy", mp_.fy_, -1.0);
   node_.param("grid_map/cx", mp_.cx_, -1.0);
   node_.param("grid_map/cy", mp_.cy_, -1.0);
-  //是否使用滤波器
+
   node_.param("grid_map/use_depth_filter", mp_.use_depth_filter_, true);
   node_.param("grid_map/depth_filter_tolerance", mp_.depth_filter_tolerance_, -1.0);
-  //滤波器认为有效的最大距离和最小距离
   node_.param("grid_map/depth_filter_maxdist", mp_.depth_filter_maxdist_, -1.0);
   node_.param("grid_map/depth_filter_mindist", mp_.depth_filter_mindist_, -1.0);
-  //抛弃深度相机的边缘
   node_.param("grid_map/depth_filter_margin", mp_.depth_filter_margin_, -1);
-  //mm转化为m
   node_.param("grid_map/k_depth_scaling_factor", mp_.k_depth_scaling_factor_, -1.0);
-  //降采样
   node_.param("grid_map/skip_pixel", mp_.skip_pixel_, -1);
-  //概率栅格更新参数
+
   node_.param("grid_map/p_hit", mp_.p_hit_, 0.70);
   node_.param("grid_map/p_miss", mp_.p_miss_, 0.35);
   node_.param("grid_map/p_min", mp_.p_min_, 0.12);
   node_.param("grid_map/p_max", mp_.p_max_, 0.97);
   node_.param("grid_map/p_occ", mp_.p_occ_, 0.80);
-  //最长最短的深度相机光线长度
   node_.param("grid_map/min_ray_length", mp_.min_ray_length_, -0.1);
   node_.param("grid_map/max_ray_length", mp_.max_ray_length_, -0.1);
-  //可视化截断高度，超过该高度的地图像素将不被显示
+
   node_.param("grid_map/visualization_truncate_height", mp_.visualization_truncate_height_, -0.1);
-  //在一定高度上添加虚拟地面
   node_.param("grid_map/virtual_ceil_height", mp_.virtual_ceil_height_, -0.1);
   node_.param("grid_map/virtual_ceil_yp", mp_.virtual_ceil_yp_, -0.1);
   node_.param("grid_map/virtual_ceil_yn", mp_.virtual_ceil_yn_, -0.1);
+
   node_.param("grid_map/show_occ_time", mp_.show_occ_time_, false);
-  //接受的位姿1为geometry_msgs::Pose类型，2为nav_msgs::Odom类型
   node_.param("grid_map/pose_type", mp_.pose_type_, 1);
-  //发布地图的frame_id
+
   node_.param("grid_map/frame_id", mp_.frame_id_, string("world"));
-  //局部地图的边界，更新时以local_bound_min和local_bound_max向外扩展margin个栅格作为更新范围
   node_.param("grid_map/local_map_margin", mp_.local_map_margin_, 1);
-   //地图坐标系下的地面高度
   node_.param("grid_map/ground_height", mp_.ground_height_, 1.0);
 
   node_.param("grid_map/odom_depth_timeout", mp_.odom_depth_timeout_, 1.0);
@@ -69,11 +57,11 @@ void GridMap::initMap(ros::NodeHandle &nh)
   {
     mp_.virtual_ceil_height_ = mp_.ground_height_ + z_size;
   }
-//地图原点和地图大小(m)
+
   mp_.resolution_inv_ = 1 / mp_.resolution_;
   mp_.map_origin_ = Eigen::Vector3d(-x_size / 2.0, -y_size / 2.0, mp_.ground_height_);
   mp_.map_size_ = Eigen::Vector3d(x_size, y_size, z_size);
-// 贝叶斯滤波相关
+
   mp_.prob_hit_log_ = logit(mp_.p_hit_);
   mp_.prob_miss_log_ = logit(mp_.p_miss_);
   mp_.clamp_min_log_ = logit(mp_.p_min_);
@@ -89,14 +77,14 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
   for (int i = 0; i < 3; ++i)
     mp_.map_voxel_num_(i) = ceil(mp_.map_size_(i) / mp_.resolution_);
-//地图的最大和最小边界(m)
+
   mp_.map_min_boundary_ = mp_.map_origin_;
   mp_.map_max_boundary_ = mp_.map_origin_ + mp_.map_size_;
 
   // initialize data buffers
 
   int buffer_size = mp_.map_voxel_num_(0) * mp_.map_voxel_num_(1) * mp_.map_voxel_num_(2);
-  //概率占据栅格地图，以及膨胀后的占据栅格地图
+
   md_.occupancy_buffer_ = vector<double>(buffer_size, mp_.clamp_min_log_ - mp_.unknown_flag_);
   md_.occupancy_buffer_inflate_ = vector<char>(buffer_size, 0);
 
@@ -106,17 +94,17 @@ void GridMap::initMap(ros::NodeHandle &nh)
   md_.flag_traverse_ = vector<char>(buffer_size, -1);
 
   md_.raycast_num_ = 0;
-//深度图转点云的存储位置
+
   md_.proj_points_.resize(640 * 480 / mp_.skip_pixel_ / mp_.skip_pixel_);
   md_.proj_points_cnt = 0;
-//相机和机体的坐标转换
+
   md_.cam2body_ << 0.0, 0.0, 1.0, 0.0,
-                  -1.0, 0.0, 0.0, 0.0,
-                   0.0, -1.0, 0.0, 0.0,
-                   0.0, 0.0, 0.0, 1.0;
+      -1.0, 0.0, 0.0, 0.0,
+      0.0, -1.0, 0.0, 0.0,
+      0.0, 0.0, 0.0, 1.0;
 
   /* init callback */
-//深度图像和位姿时间戳对齐
+
   depth_sub_.reset(new message_filters::Subscriber<sensor_msgs::Image>(node_, "grid_map/depth", 50));
   extrinsic_sub_ = node_.subscribe<nav_msgs::Odometry>(
       "/vins_estimator/extrinsic", 10, &GridMap::extrinsicCallback, this); //sub
@@ -138,7 +126,7 @@ void GridMap::initMap(ros::NodeHandle &nh)
         SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_));
     sync_image_odom_->registerCallback(boost::bind(&GridMap::depthOdomCallback, this, _1, _2));
   }
- //使用深度图的话会自动禁止下面的
+
   // use odometry and point cloud
   indep_cloud_sub_ =
       node_.subscribe<sensor_msgs::PointCloud2>("grid_map/cloud", 10, &GridMap::cloudCallback, this);
@@ -223,7 +211,7 @@ int GridMap::setCacheOccupancy(Eigen::Vector3d pos, int occ)
 
   return idx_ctns;
 }
-//处理深度图
+
 void GridMap::projectDepthImage()
 {
   // md_.proj_points_.clear();
@@ -347,7 +335,7 @@ void GridMap::projectDepthImage()
   md_.last_camera_r_m_ = md_.camera_r_m_;
   md_.last_depth_image_ = md_.depth_image_;
 }
-//光线投射，沿着光路更新路径上的所有栅格概率
+
 void GridMap::raycastProcess()
 {
   // if (md_.proj_points_.size() == 0)
@@ -871,7 +859,7 @@ void GridMap::cloudCallback(const sensor_msgs::PointCloud2ConstPtr &img)
       }
   }
 }
-//发布地图点云
+
 void GridMap::publishMap()
 {
 

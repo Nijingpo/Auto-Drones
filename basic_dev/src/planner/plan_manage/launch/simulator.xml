@@ -12,7 +12,7 @@
   <arg name="odometry_topic"/>
   <arg name="drone_id"/>
 
-  <!-- 你可以选择两种地图，只需像下面这样评论掉你不需要的地图。试试. /-->
+  <!-- There are two kinds of maps you can choose, just comment out the one you don’t need like the follow. Have a try. /-->
 
   <![CDATA[node pkg ="map_generator" name ="random_forest" type ="random_forest" output = "screen">    
     <remap from="~odometry"   to="$(arg odometry_topic)"/>    

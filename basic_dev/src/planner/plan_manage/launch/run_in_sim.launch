@@ -1,5 +1,5 @@
 <launch>
-  <!-- 地图的大小，根据您的应用程序更改膨胀x、y、z的大小-->
+  <!-- size of map, change the size inflate x, y, z according to your application -->
   <arg name="map_size_x"/>
   <arg name="map_size_y"/>
   <arg name="map_size_z"/>
@@ -12,13 +12,13 @@
 
   <arg name="drone_id"/>
 
-  <!-- 里程计的主题，例如VIO或LIO-->
+  <!-- topic of your odometry such as VIO or LIO -->
   <arg name="odom_topic"/>
 
-  <!-- 移动对象的数量 -->
+  <!-- number of moving objects -->
   <arg name="obj_num" value="1" />
 
-  <!-- 主要算法参数 -->
+  <!-- main algorithm params -->
   <include file="$(find ego_planner)/launch/advanced_param.xml">
 
     <arg name="drone_id" value="$(arg drone_id)"/>
@@ -30,37 +30,37 @@
 
     <arg name="obj_num_set" value="$(arg obj_num)" />
 
-    <!-- 摄影机姿势：摄影机帧在世界帧中的变换 -->
-    <!-- 深度主题：深度图像，默认为640x480-->
-    <!-- 如果你已经设置了cloud_topic，就不要设置这些! -->
+    <!-- camera pose: transform of camera frame in the world frame -->
+    <!-- depth topic: depth image, 640x480 by default -->
+    <!-- don't set cloud_topic if you already set these ones! -->
     <arg name="camera_pose_topic" value="pcl_render_node/camera_pose"/>
     <arg name="depth_topic" value="pcl_render_node/depth"/>
 
-    <!-- 点云测量的主题，例如来自激光雷达  -->
-    <!-- 不要设置相机的姿势和深度，如果你已经设置了这个！ -->
+    <!-- topic of point cloud measurement, such as from LIDAR  -->
+    <!-- don't set camera pose and depth, if you already set this one! -->
     <arg name="cloud_topic" value="pcl_render_node/cloud"/>
 
-    <!-- 深度相机的固有参数 -->
+    <!-- intrinsic params of the depth camera -->
     <arg name="cx" value="321.04638671875"/>
     <arg name="cy" value="243.44969177246094"/>
     <arg name="fx" value="387.229248046875"/>
     <arg name="fy" value="387.229248046875"/>
 
-    <!--无人机将达到的最大速度和加速度 -->
-    <arg name="max_vel" value="5.0" />
+    <!-- maximum velocity and acceleration the drone will reach -->
+    <arg name="max_vel" value="2.0" />
     <arg name="max_acc" value="3.0" />
 
-    <!--始终设置为感应水平的1.5倍-->
+    <!--always set to 1.5 times grater than sensing horizen-->
     <arg name="planning_horizon" value="7.5" /> 
 
     <arg name="use_distinctive_trajs" value="true" />
 
-    <!-- 1: 使用二维导航目标选择目标  -->
-    <!-- 2: 使用下面的全局路点  -->
+    <!-- 1: use 2D Nav Goal to select goal  -->
+    <!-- 2: use global waypoints below  -->
     <arg name="flight_type" value="2" />
     
-    <!-- 全局航路点 -->
-    <!-- 它生成一个通过所有路点的分段最小捕捉traj -->
+    <!-- global waypoints -->
+    <!-- It generates a piecewise min-snap traj passing all waypoints -->
     <arg name="point_num" value="1" />
 
     <arg name="point0_x" value="$(arg target_x)" />
@@ -85,7 +85,7 @@
     
   </include>
 
-  <!-- 轨迹服务器 -->
+  <!-- trajectory server -->
   <node pkg="ego_planner" name="drone_$(arg drone_id)_traj_server" type="traj_server" output="screen">
     <remap from="position_cmd" to="drone_$(arg drone_id)_planning/pos_cmd"/>
     <remap from="~planning/bspline" to="drone_$(arg drone_id)_planning/bspline"/>
@@ -100,7 +100,7 @@
     <param name="waypoint_type" value="manual-lonely-waypoint"/>    
   </node-->
 
-  <!-- 使用模拟器 -->
+  <!-- use simulator -->
   <include file="$(find ego_planner)/launch/simulator.xml">
 
     <arg name="drone_id" value="$(arg drone_id)"/>

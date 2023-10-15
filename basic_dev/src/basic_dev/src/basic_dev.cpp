@@ -9,9 +9,59 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "basic_dev"); // 初始化ros 节点，命名为 basic
     ros::NodeHandle n; // 创建node控制句柄
     BasicDev go(&n);
+    begin_task();
     return 0;
 }
+void begin_task()
+{   
 
+    int selected_id[]={6,7,11}
+    //起飞
+    if(!takeoffflag)
+    {
+        takeoff_client.call(takeoff);
+        takeoffflag=1;
+    }
+   
+    //穿越前三个圆圈  
+    for (int circle_id =0;circle_id < 3;circle_id++)
+    {
+        //前往圆圈前方一点
+        go_to_circle_pre(circle_id);
+        //获取圆圈的准确位置
+        get_circle(circle_id);
+        //将圆环位置发送给egoplanner
+
+        //读取egoplanner状态,为的时候停止循环
+        while()
+        {
+            r.sleep();
+        }
+    }
+    //穿越任选的三个圆圈
+    for (int i =0;i < 2;i++)
+    {
+        //前往圆圈前方一点
+        go_to_circle_pre(selected_id[i]);
+        //穿越圆圈
+        cross_circle(selected_id[i]);
+    }
+}
+void go_to_circle_pre(int circle_id)
+{
+    circles_suber.poses[circle_id];
+    //获取圆圈位置
+
+    ROS_INFO("Circle %d pose: x=%f, y=%f, z=%f", circle_id, circle_pose.position.x, circle_pose.position.y, circle_pose.position.z);
+    //前往圆圈
+    go_to(circle_pose);
+}
+void get_circle(int circle_id)
+{
+    //得到圆环到相机的坐标
+    //相机到机身
+    //机身到世界
+}
 BasicDev::BasicDev(ros::NodeHandle *nh)
 {  
     //创建图像传输控制句柄
@@ -19,6 +69,7 @@ BasicDev::BasicDev(ros::NodeHandle *nh)
     front_left_img = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
     front_right_img = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
     bottom_img = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
+    ros::Rate r(1)
 
     takeoff.request.waitOnLastTask = 1;
     land.request.waitOnLastTask = 1;
@@ -59,7 +110,7 @@ BasicDev::BasicDev(ros::NodeHandle *nh)
     pose_publisher = nh->advertise<airsim_ros::PoseCmd>("airsim_node/drone_1/pose_cmd_body_frame", 1);
     anglerate_publisher = nh->advertise<airsim_ros::AngleRateThrottle>("airsim_node/drone_1/angle_rate_throttle_frame", 1);
 
-    // takeoff_client.call(takeoff); //起飞
+    // takeoff_client.call(takeoff); //起飞                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
     // land_client.call(land); //降落
     // reset_client.call(reset); //重置
 
@@ -83,6 +134,7 @@ void BasicDev::gps_cb(const geometry_msgs::PoseStamped::ConstPtr& msg)
 void BasicDev::imu_cb(const sensor_msgs::Imu::ConstPtr& msg)
 {
     ROS_INFO("Get imu data.");
+
 }
 
 void BasicDev::circles_cb(const airsim_ros::CirclePoses::ConstPtr& msg)

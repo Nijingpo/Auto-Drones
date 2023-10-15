@@ -29,6 +29,8 @@ image_transport
 OpenCV
 cv_bridge
 )
+find_package( OpenCV REQUIRED )
+find_package( PCL REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
@@ -39,8 +41,9 @@ include_directories(include ${catkin_INCLUDE_DIRS}  ${OpenCv_INCLUDE_DIRS})
 
 
 add_executable(basic_dev src/basic_dev.cpp )
+add_executable(img_pcl src/img_pcl.cpp)
 target_link_libraries(basic_dev ${catkin_LIBRARIES} ${OpenCv_LIBS})
-
+target_link_libraries(img_pcl ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 install(DIRECTORY
   launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

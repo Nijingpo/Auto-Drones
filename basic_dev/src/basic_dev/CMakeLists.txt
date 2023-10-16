@@ -28,6 +28,9 @@ tf2_geometry_msgs
 image_transport
 OpenCV
 cv_bridge
+message_filters
+pcl_ros
+roslib
 )
 find_package( OpenCV REQUIRED )
 find_package( PCL REQUIRED)

@@ -14,8 +14,10 @@ int main(int argc, char** argv)
 }
 void begin_task()
 {   
-
-    int selected_id[]={6,7,11}
+    //各圆的准确坐标，13*2二维数组
+    double circle_xyz[][3]={}
+    //圆的序号
+    int selected_id[]={1,2,3,4,5,6,7,11,13,14,15,16,17}
     //起飞
     if(!takeoffflag)
     {
@@ -24,12 +26,14 @@ void begin_task()
     }
    
     //穿越前三个圆圈  
-    for (int circle_id =0;circle_id < 3;circle_id++)
+    for (int i =0;i < 3;i++)
     {
+        //获取大致坐标
+
         //前往圆圈前方一点
-        go_to_circle_pre(circle_id);
+        go_to_circle_pre(i);
         //获取圆圈的准确位置
-        get_circle(circle_id);
+       
         //将圆环位置发送给egoplanner
 
         //读取egoplanner状态,为的时候停止循环
@@ -95,7 +99,7 @@ BasicDev::BasicDev(ros::NodeHandle *nh)
     //无人机信息通过如下命令订阅，当收到消息时自动回调对应的函数
     odom_suber = nh->subscribe<geometry_msgs::PoseStamped>("/airsim_node/drone_1/debug/pose_gt", 1, std::bind(&BasicDev::pose_cb, this, std::placeholders::_1));//状态真值，用于赛道一
     gps_suber = nh->subscribe<geometry_msgs::PoseStamped>("/airsim_node/drone_1/pose", 1, std::bind(&BasicDev::gps_cb, this, std::placeholders::_1));//状态真值，用于赛道一
-    imu_suber = nh->subscribe<sensor_msgs::Imu>("airsim_node/drone_1/imu/imu", 1, std::bind(&BasicDev::imu_cb, this, std::placeholders::_1));//imu数据
+    // imu_suber = nh->subscribe<sensor_msgs::Imu>("airsim_node/drone_1/imu/imu", 1, std::bind(&BasicDev::imu_cb, this, std::placeholders::_1));//imu数据
     circles_suber = nh->subscribe<airsim_ros::CirclePoses>("airsim_node/drone_1/circle_poses", 1, std::bind(&BasicDev::circles_cb, this, std::placeholders::_1));//障碍圈数据
     front_left_view_suber = it->subscribe("airsim_node/drone_1/front_left/Scene", 1, std::bind(&BasicDev::front_left_view_cb, this,  std::placeholders::_1));
     front_right_view_suber = it->subscribe("airsim_node/drone_1/front_right/Scene", 1, std::bind(&BasicDev::front_right_view_cb, this,  std::placeholders::_1));

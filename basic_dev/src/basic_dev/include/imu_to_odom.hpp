@@ -49,11 +49,11 @@ public:
 
 ImuOdom::ImuOdom(ros::NodeHandle& nh):nhi(nh) {
   //参数初始化
-  imusub = nhi.subscribe("/imu/data", 32, &ImuOdom::ImuCallback, this);
-  odompub = nhi.advertise<nav_msgs::Odometry>("imu_odom", 32);
+  imusub = nhi.subscribe("/airsim_node/drone_1/imu/imu", 32, &ImuOdom::ImuCallback, this);
+  odompub = nhi.advertise<nav_msgs::Odometry>("/drone_0_visual_slam/odom", 32);
   
-  odom.header.frame_id = "odom";
-  odom.child_frame_id = "base_link";
+  odom.header.frame_id = "world";
+  odom.child_frame_id = "";
   Eigen::Vector3d zero(0, 0, 0);
   point.pos = zero;
   point.orien = Eigen::Matrix3d::Identity();
@@ -137,8 +137,4 @@ void ImuOdom::updateodom(const Piont point) {
   //发布里程计
   odompub.publish(odom);
 }
-
-
-
-
 #endif

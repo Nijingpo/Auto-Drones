@@ -51,7 +51,8 @@ private:
     //无人机信息通过如下命令订阅，当收到消息时自动回调对应的函数
     ros::Subscriber odom_suber;//状态真值
     ros::Subscriber gps_suber;//gps数据
-    ros::Subscriber imu_suber;//imu数据
+    // ros::Subscriber imu_suber;
+    //imu数据
     ros::Subscriber circles_suber;//障碍圈参考位置
     image_transport::Subscriber front_left_view_suber;
     image_transport::Subscriber front_right_view_suber;

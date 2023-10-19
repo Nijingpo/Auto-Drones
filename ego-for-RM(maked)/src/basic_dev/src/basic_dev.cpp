@@ -9,62 +9,8 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "basic_dev"); // 初始化ros 节点，命名为 basic
     ros::NodeHandle n; // 创建node控制句柄
     BasicDev go(&n);
-    begin_task();
+
     return 0;
-}
-void begin_task()
-{   
-    //各圆的准确坐标，13*2二维数组
-    double circle_xyz[][3]={}
-    //圆的序号
-    int selected_id[]={1,2,3,4,5,6,7,11,13,14,15,16,17}
-    //起飞
-    if(!takeoffflag)
-    {
-        takeoff_client.call(takeoff);
-        takeoffflag=1;
-    }
-   
-    //穿越前三个圆圈  
-    for (int i =0;i < 3;i++)
-    {
-        //获取大致坐标
-
-        //前往圆圈前方一点
-        go_to_circle_pre(i);
-        //获取圆圈的准确位置
-       
-        //将圆环位置发送给egoplanner
-
-        //读取egoplanner状态,为的时候停止循环
-        while()
-        {
-            r.sleep();
-        }
-    }
-    //穿越任选的三个圆圈
-    for (int i =0;i < 2;i++)
-    {
-        //前往圆圈前方一点
-        go_to_circle_pre(selected_id[i]);
-        //穿越圆圈
-        cross_circle(selected_id[i]);
-    }
-}
-void go_to_circle_pre(int circle_id)
-{
-    circles_suber.poses[circle_id];
-    //获取圆圈位置
-
-    ROS_INFO("Circle %d pose: x=%f, y=%f, z=%f", circle_id, circle_pose.position.x, circle_pose.position.y, circle_pose.position.z);
-    //前往圆圈
-    go_to(circle_pose);
-}
-void get_circle(int circle_id)
-{
-    //得到圆环到相机的坐标
-    //相机到机身
-    //机身到世界
 }
 BasicDev::BasicDev(ros::NodeHandle *nh)
 {  
@@ -73,7 +19,13 @@ BasicDev::BasicDev(ros::NodeHandle *nh)
     front_left_img = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
     front_right_img = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
     bottom_img = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0));
-    ros::Rate r(1)
+    std::string state
+
+    double pre_point_pose[17]={};
+    double point_buffer[]={};
+
+    ros::Rate onehz(1);
+    ros::Rate tenhz(10);
 
     takeoff.request.waitOnLastTask = 1;
     land.request.waitOnLastTask = 1;
@@ -114,8 +66,10 @@ BasicDev::BasicDev(ros::NodeHandle *nh)
     pose_publisher = nh->advertise<airsim_ros::PoseCmd>("airsim_node/drone_1/pose_cmd_body_frame", 1);
     anglerate_publisher = nh->advertise<airsim_ros::AngleRateThrottle>("airsim_node/drone_1/angle_rate_throttle_frame", 1);
     
-    piont_pub=nh->advertise
-    state_suber=nh->advertise
+    
+    state_sub=nh->subscribe<std_msgs::String>("/planner_state",1,std::bind(&BasicDev::state_cb this,std::placeholders::_1));
+    point_pub = nh->advertise<geometry_msgs/PoseStamped>("/point");
+    BasicDev::begin_task();
     // takeoff_client.call(takeoff); //起飞                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
     // land_client.call(land); //降落
     // reset_client.call(reset); //重置
@@ -127,15 +81,85 @@ BasicDev::~BasicDev()
 {
 }
 
+BasicDev::begin_task()
+{   
+
+    
+    //圆的序号
+    
+    //起飞
+    if(!takeoffflag)
+    {
+        takeoff_client.call(takeoff);
+        takeoffflag=1;
+    }
+   
+    //穿越前三个圆圈  
+    for (int i =0;i < 3;i++)
+    {
+        //获取大致坐标
+        geometry_msgs::PoseStamped pre_point
+        pre_point.frame_id="world";
+        pre_point.position.x=pre_point_pose[i][0];
+        pre_point.position.y=pre_point_pose[i][1];
+        pre_point.position.z=pre_point_pose[i][2];
+        //前往圆圈前方一点
+        go_to_point(pre_point);
+        //获取圆圈的准确位置
+        geometry_msgs::PoseStamped point
+
+        go_to_point(point);
+    
+    }
+    //穿越任选的三个圆圈
+    for (int i =0;i < 2;i++)
+    {
+        //获取大致坐标
+        geometry_msgs::PoseStamped pre_point
+        pre_point.frame_id="world";
+        pre_point.position.x=pre_point_pose[i][0];
+        pre_point.position.y=pre_point_pose[i][1];
+        pre_point.position.z=pre_point_pose[i][2];
+        //前往圆圈前方一点
+        go_to_point(pre_point);
+        //获取圆圈的准确位置
+        geometry_msgs::PoseStamped point
+        
+        go_to_point(point);
+        
+    }
+}
+void get_circle(int circle_id)
+{
+    //得到圆环到相机的坐标
+    //相机到机身
+    //机身到世界
+}
+void BasicDev::go_to_point(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+    while(ros::ok())
+    {
+        if(state=="WAIT_TARGET")
+        {   
+            point_pub.publish(msg);
+            break;
+        }
+    }
+}
+void BasicDev::state_cb(const std_msgs::String::ConstPtr& msg)
+{
+    state=msg->data;
+}
+
 void BasicDev::pose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg)
 {
     ROS_INFO("Get pose data.");
 }
 
-void BasicDev::gps_cb(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
-    ROS_INFO("Get gps data.");
-}
+// void BasicDev::gps_cb(const geometry_msgs::PoseStamped::ConstPtr& msg)
+// {
+//     ROS_INFO("Get gps data.");
+// }
 
 void BasicDev::imu_cb(const sensor_msgs::Imu::ConstPtr& msg)
 {
@@ -145,6 +169,17 @@ void BasicDev::imu_cb(const sensor_msgs::Imu::ConstPtr& msg)
 
 void BasicDev::circles_cb(const airsim_ros::CirclePoses::ConstPtr& msg)
 {
+    for(int i=0,i<17,i++)
+    {
+        double x=msg->poses[i].position.x;
+        double y=msg->poses[i].position.y;
+        double z=msg->poses[i].position.z;
+        double r=msg->poses[i].yaw;
+        point_pose[1][i][0]=x+4*cos(r);
+        point_pose[1][i][1]=y+4*sin(r);
+        point_pose[1][i][2]=z;
+    }
+
     ROS_INFO("Get circle poses data.");
 }
 

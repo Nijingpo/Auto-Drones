@@ -1,4 +1,4 @@
-
+//修改了waypointCallBack,此函数用于执行选定的点
 #include <plan_manage/ego_replan_fsm.h>
 
 namespace ego_planner
@@ -58,6 +58,8 @@ namespace ego_planner
 
     bspline_pub_ = nh.advertise<traj_utils::Bspline>("planning/bspline", 10);
     data_disp_pub_ = nh.advertise<traj_utils::DataDisp>("planning/data_display", 100);
+    //创建状态发布器
+    state_pub = nh.advertise<std_msgs::String>("/planner_state",1);
 
     if (target_type_ == TARGET_TYPE::MANUAL_TARGET)
     {
@@ -217,7 +219,7 @@ namespace ego_planner
     // trigger_ = true;
     init_pt_ = odom_pos_;
 
-    Eigen::Vector3d end_wp(msg->pose.position.x, msg->pose.position.y, 1.0);
+    Eigen::Vector3d end_wp(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
 
     planNextWaypoint(end_wp);
   }
@@ -426,6 +428,9 @@ namespace ego_planner
     static string state_str[8] = {"INIT", "WAIT_TARGET", "GEN_NEW_TRAJ", "REPLAN_TRAJ", "EXEC_TRAJ", "EMERGENCY_STOP", "SEQUENTIAL_START"};
 
     cout << "[FSM]: state: " + state_str[int(exec_state_)] << endl;
+    //state_pub
+    state_pub.publish(state_str[int(exec_state_)]);
+
   }
 
   void EGOReplanFSM::execFSMCallback(const ros::TimerEvent &e)

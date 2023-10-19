@@ -2,6 +2,8 @@
 #define _BASIC_DEV_HPP_
 
 #include <ros/ros.h>
+#include <cmath>
+#include <string>
 #include <image_transport/image_transport.h>
 #include "airsim_ros/VelCmd.h"
 #include "airsim_ros/PoseCmd.h"

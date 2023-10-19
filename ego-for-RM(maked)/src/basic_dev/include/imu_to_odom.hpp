@@ -49,8 +49,8 @@ public:
 
 ImuOdom::ImuOdom(ros::NodeHandle& nh):nhi(nh) {
   //参数初始化
-  imusub = nhi.subscribe("/airsim_node/drone_1/imu/imu", 32, &ImuOdom::ImuCallback, this);
-  odompub = nhi.advertise<nav_msgs::Odometry>("/drone_0_visual_slam/odom", 32);
+  imusub = nhi.subscribe("/airsim_node/drone_1/imu/imu", 1, &ImuOdom::ImuCallback, this);
+  odompub = nhi.advertise<nav_msgs::Odometry>("/airsim_odom", 1);
   
   odom.header.frame_id = "world";
   odom.child_frame_id = "";

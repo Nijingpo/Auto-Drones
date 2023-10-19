@@ -1,0 +1,6 @@
+<launch>
+    <include file="$find planner/launch/swarm.launch">
+    
+    <node name="img_pcl" pkg="basic_dev" type="img_pcl">
+    <node name="imu_to_odom" pkg="basic_dev" type="imu_to_odom">
+<launch>

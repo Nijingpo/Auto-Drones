@@ -78,9 +78,9 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "img_pcl");
     ros::NodeHandle nh;
     // it = std::make_unique<image_transport::ImageTransport>(nh); 
-    pcl_pub = nh.advertise<sensor_msgs::PointCloud2>("opencv_test_node", 1);
-    message_filters::Subscriber<sensor_msgs::Image> left_sub(nh, "airsim_node/drone_1/front_left/Scene", 1);
-    message_filters::Subscriber<sensor_msgs::Image> right_sub(nh, "airsim_node/drone_1/front_right/Scene", 1);
+    pcl_pub = nh.advertise<sensor_msgs::PointCloud2>("/airsim_piontcloud", 1);
+    message_filters::Subscriber<sensor_msgs::Image> left_sub(nh, "/airsim_node/drone_1/front_left/Scene", 1);
+    message_filters::Subscriber<sensor_msgs::Image> right_sub(nh, "/airsim_node/drone_1/front_right/Scene", 1);
     TimeSynchronizer<sensor_msgs::Image,sensor_msgs::Image> sync(left_sub, right_sub, 10);
     sync.registerCallback(boost::bind(&imageCallback, _1, _2));
     ros::spin();

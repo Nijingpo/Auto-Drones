@@ -38,7 +38,7 @@
 
     <!-- topic of point cloud measurement, such as from LIDAR  -->
     <!-- don't set camera pose and depth, if you already set this one! -->
-    <arg name="cloud_topic" value="pcl_render_node/cloud"/>
+    <arg name="cloud_topic" value="/airsim_piontcloud"/>
 
     <!-- intrinsic params of the depth camera -->
     <arg name="cx" value="321.04638671875"/>
@@ -47,7 +47,7 @@
     <arg name="fy" value="387.229248046875"/>
 
     <!-- maximum velocity and acceleration the drone will reach -->
-    <arg name="max_vel" value="2.0" />
+    <arg name="max_vel" value="4.0" />
     <arg name="max_acc" value="3.0" />
 
     <!--always set to 1.5 times grater than sensing horizen-->
